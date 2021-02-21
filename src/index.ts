@@ -1,12 +1,10 @@
 import { CeloProvider, CeloWallet } from "@celo-tools/celo-ethers-wrapper";
-import { CeloContract, newKitFromWeb3 } from "@celo/contractkit";
-import HDWalletProvider from "@truffle/hdwallet-provider";
+import { CeloContract, newKit } from "@celo/contractkit";
 import { BigNumber } from "ethers";
 import { HDNode } from "ethers/lib/utils";
 import { extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
-import Web3 from "web3";
 import { fornoURLs, parseNetwork } from "./networks";
 export * from "./networks";
 export * from "./type-extensions";
@@ -23,14 +21,15 @@ extendEnvironment((hre) => {
     const accountsCfg = currentNetwork?.accounts as HardhatNetworkHDAccountsConfig;
     const hdNode = HDNode.fromMnemonic(accountsCfg.mnemonic);
 
-    const provider = new HDWalletProvider({
-      mnemonic: accountsCfg.mnemonic,
-      providerOrUrl: fornoURLs[network],
-      numberOfAddresses: accountsCfg.count,
-      derivationPath,
+    const kit = newKit(fornoURLs[network]);
+    const accounts = Array(accountsCfg.count)
+      .fill(null)
+      .map((_, i) => hdNode.derivePath(`${derivationPath}${i}`));
+    kit.defaultAccount = accounts[0]?.address;
+    accounts.forEach((acc) => {
+      kit.connection.addAccount(acc.privateKey);
     });
-    const web3 = new Web3(provider);
-    const kit = newKitFromWeb3(web3);
+
     kit.setFeeCurrency(CeloContract.GoldToken);
 
     console.log(`Using network:`, fornoURLs[network]);

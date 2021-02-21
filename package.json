@@ -29,8 +29,7 @@
     "*.{ts,js,css,md}": "prettier --write"
   },
   "dependencies": {
-    "@celo-tools/celo-ethers-wrapper": "^0.0.5",
-    "@truffle/hdwallet-provider": "^1.2.2"
+    "@celo-tools/celo-ethers-wrapper": "^0.0.5"
   },
   "peerDependencies": {
     "@celo/contractkit": "^1.0.2",
