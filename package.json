@@ -1,9 +1,9 @@
 {
   "name": "@ubeswap/hardhat-celo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Celo integration for Hardhat",
-  "main": "lib/src/index.js",
-  "types": "lib/src/index.d.ts",
+  "main": "./lib/src/index.js",
+  "types": "./lib/src/index.d.ts",
   "repository": "git@github.com:Ubeswap/hardhat-celo.git",
   "author": "Ian Macalinao <ian@ubeswap.org>",
   "license": "MIT",
@@ -37,5 +37,9 @@
     "ethers": "^5.0.31",
     "hardhat": "^2.0.10"
   },
-  "prettier": {}
+  "prettier": {},
+  "include": [
+    "./lib",
+    "./README.md"
+  ]
 }
