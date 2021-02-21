@@ -8,9 +8,9 @@ import { lazyObject } from "hardhat/plugins";
 import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import Web3 from "web3";
 import { fornoURLs, parseNetwork } from "./networks";
-export * from './networks';
+export * from "./networks";
 
-const derivationPath = "m/44'/52752'/0'/0/";
+export const derivationPath = "m/44'/52752'/0'/0/";
 
 extendEnvironment((hre) => {
   hre.celo = lazyObject(() => {
@@ -21,6 +21,7 @@ extendEnvironment((hre) => {
     // TODO(igm): support more than HD wallets
     const accountsCfg = currentNetwork?.accounts as HardhatNetworkHDAccountsConfig;
     const hdNode = HDNode.fromMnemonic(accountsCfg.mnemonic);
+
     const provider = new HDWalletProvider({
       mnemonic: accountsCfg.mnemonic,
       providerOrUrl: fornoURLs[network],
