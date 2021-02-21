@@ -1,0 +1,5 @@
+tsconfig.*
+src
+yarn.lock
+nix
+.envrc
