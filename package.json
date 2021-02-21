@@ -38,8 +38,8 @@
     "hardhat": "^2.0.10"
   },
   "prettier": {},
-  "include": [
-    "./lib",
-    "./README.md"
+  "files": [
+    "lib",
+    "README.md"
   ]
 }
