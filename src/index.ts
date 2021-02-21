@@ -9,6 +9,7 @@ import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import Web3 from "web3";
 import { fornoURLs, parseNetwork } from "./networks";
 export * from "./networks";
+export * from "./type-extensions";
 
 export const derivationPath = "m/44'/52752'/0'/0/";
 
