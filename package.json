@@ -43,9 +43,5 @@
     "hardhat": "^2.0.10",
     "web3": "^1.3.4"
   },
-  "prettier": {},
-  "resolutions": {
-    "web3": "1.3.4",
-    "@celo/contractkit": "1.0.2"
-  }
+  "prettier": {}
 }
