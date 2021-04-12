@@ -153,7 +153,9 @@ export const makeDeployTask = <
 
     const deploymentsDir = `${env.config.paths.root}/deployments`;
     console.log("Creating deployments directory at", deploymentsDir);
-    await mkdir(deploymentsDir);
+    await mkdir(deploymentsDir, {
+      recursive: true,
+    });
 
     const chainId = (await env.celo.kit.connection.chainId()) as ICeloNetwork;
     const deployer = deployers[step];
