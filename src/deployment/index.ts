@@ -165,9 +165,17 @@ export const makeDeployTask = <
 
     const { signer, provider } = await makeCommonEnvironment(env);
 
-    const theDeployCreate2 = (async (name, { signer, factory, args }) => {
+    const theDeployCreate2 = (async (
+      name,
+      { signer, factory, args, saltExtra }
+    ) => {
       log(`Deploying ${name}...`);
-      const result = await deployCreate2({ signer, factory, args, salt });
+      const result = await deployCreate2({
+        signer,
+        factory,
+        args,
+        salt: `${salt}-${name}${saltExtra ?? ""}`,
+      });
       log(`Deployed at ${result.address} (tx: ${result.txHash})`);
       return result;
     }) as DeployCreate2;
