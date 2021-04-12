@@ -11,14 +11,7 @@ import { ICeloNetwork, networkNames } from "../networks";
 import { DeployCreate2 } from "../utils/deployCreate2";
 import { log } from "../utils/logger";
 
-type GetAddressesFn<K extends string, M extends DeployerMap<K>> = (
-  ...keys: readonly K[]
-) => IAllResults<K, M>;
-
-/**
- * A function that deploys things
- */
-export type DeployerFn<R> = <K extends string, M extends DeployerMap<K>>(args: {
+type DeployerFnArgs<K extends string, RM extends { [Key in K]: RM[Key] }> = {
   /**
    * Provider for fetching data
    */
@@ -30,7 +23,7 @@ export type DeployerFn<R> = <K extends string, M extends DeployerMap<K>>(args: {
   /**
    * Get addresses of previous deployments.
    */
-  getAddresses: GetAddressesFn<K, M>;
+  getAddresses: (...keys: readonly K[]) => IAllResults<K, RM>;
   /**
    * The salt. This can also be set in `process.env.SALT`.
    */
@@ -39,7 +32,16 @@ export type DeployerFn<R> = <K extends string, M extends DeployerMap<K>>(args: {
    * Allows deploying a contract deterministically.
    */
   deployCreate2: DeployCreate2;
-}) => Promise<R>;
+};
+
+/**
+ * A function that deploys things
+ */
+export type DeployerFn<
+  R,
+  K extends string,
+  RM extends { [Key in K]: RM[Key] }
+> = (args: DeployerFnArgs<K, RM>) => Promise<R>;
 
 type AsyncReturnType<T extends (...args: any) => any> = T extends (
   ...args: any
@@ -61,8 +63,8 @@ type UnionToIntersection<T> = (T extends any ? (x: T) => any : never) extends (
  */
 export type IAllResults<
   K extends string,
-  M extends DeployerMap<K>
-> = UnionToIntersection<AsyncReturnType<M[K]>>;
+  RM extends { [Key in K]: RM[Key] }
+> = UnionToIntersection<AsyncReturnType<RM[K]>>;
 
 const makeConfigPath = (step: string, chainId: ICeloNetwork): string =>
   __dirname +
@@ -111,8 +113,11 @@ export const makeCommonEnvironment = async (
   }
 };
 
-export type DeployerMap<K extends string> = {
-  [step in K]: DeployerFn<unknown>;
+export type DeployerMap<
+  K extends string,
+  RM extends { [Key in K]: RM[Key] }
+> = {
+  [Step in K]: DeployerFn<RM[Step], K, RM>;
 };
 
 const defaultSalt =
@@ -123,7 +128,11 @@ const defaultSalt =
  * @param param0
  * @returns
  */
-export const makeDeployTask = <K extends string, M extends DeployerMap<K>>({
+export const makeDeployTask = <
+  K extends string,
+  RM extends { [Key in K]: RM[Key] },
+  M extends DeployerMap<K, RM>
+>({
   salt = defaultSalt,
   deployers,
 }: {
@@ -161,13 +170,13 @@ export const makeDeployTask = <K extends string, M extends DeployerMap<K>>({
     getAddresses: (...keys: readonly K[]) =>
       ({
         ...keys.reduce(
-          (acc: Record<string, unknown>, k: K) => ({
+          (acc: Record<K, unknown>, k: K) => ({
             ...acc,
             ...require(`${deploymentsDir}/${k}.${networkNames[chainId]}.addresses.json`),
           }),
           {}
         ),
-      } as IAllResults<K, M>),
+      } as IAllResults<K, RM>),
     salt,
     deployCreate2: theDeployCreate2,
   });
@@ -175,3 +184,16 @@ export const makeDeployTask = <K extends string, M extends DeployerMap<K>>({
 };
 
 export { deployCreate2, deployContract };
+
+/**
+ * Returns a function which adds the types to a deployer function.
+ * @param _deployers
+ * @returns
+ */
+export const makeCreateDeployer = <
+  K extends string,
+  RM extends { [Key in K]: RM[Key] },
+  M extends DeployerMap<K, RM>
+>(
+  _deployers: M
+) => <R>(inner: DeployerFn<R, K, RM>) => inner;
