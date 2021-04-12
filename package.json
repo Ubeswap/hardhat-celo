@@ -8,6 +8,7 @@
   "author": "Ian Macalinao <ian@ubeswap.org>",
   "license": "MIT",
   "scripts": {
+    "clean": "rm -fr lib/",
     "build": "tsc",
     "prepack": "tsc",
     "prepare": "husky install"
