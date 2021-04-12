@@ -129,7 +129,7 @@ export const makeDeployTask = <
   const deploymentsDir = `${rootDir}/deployments`;
 
   const makeConfigPath = (step: string, chainId: ICeloNetwork): string =>
-    `${deploymentsDir}/deployments/${step}.${networkNames[chainId]}.addresses.json`;
+    `${deploymentsDir}/${step}.${networkNames[chainId]}.addresses.json`;
 
   const writeDeployment = async (
     step: string,
