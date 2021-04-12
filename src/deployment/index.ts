@@ -10,7 +10,6 @@ import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 import { ICeloNetwork, networkNames } from "../networks";
 import { DeployCreate2 } from "../utils/deployCreate2";
 import { log } from "../utils/logger";
-import hre from "hardhat";
 
 type DeployerFnArgs = {
   /**
@@ -127,7 +126,7 @@ export const makeDeployTask = <
   deploy: ActionType<{ step: K }>;
   deployers: M;
 } => {
-  const deploymentsDir = `${rootDir ?? hre.config.paths.root}/deployments`;
+  const deploymentsDir = `${rootDir}/deployments`;
 
   const makeConfigPath = (step: string, chainId: ICeloNetwork): string =>
     `${deploymentsDir}/deployments/${step}.${networkNames[chainId]}.addresses.json`;
