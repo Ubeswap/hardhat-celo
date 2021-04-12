@@ -135,9 +135,11 @@ export const makeDeployTask = <
   RM extends { [Key in K]: RM[Key] },
   M extends DeployerMap<K, RM>
 >({
+  rootDir,
   salt = defaultSalt,
   deployers,
 }: {
+  rootDir: string;
   salt?: string;
   deployers: M;
 }): {
@@ -151,7 +153,7 @@ export const makeDeployTask = <
       );
     }
 
-    const deploymentsDir = `${env.config.paths.root}/deployments`;
+    const deploymentsDir = `${rootDir}/deployments`;
     console.log("Creating deployments directory at", deploymentsDir);
     await mkdir(deploymentsDir, {
       recursive: true,
