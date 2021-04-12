@@ -9,16 +9,17 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "prepack": "tsc"
+    "prepack": "tsc",
+    "prepare": "husky install"
   },
   "devDependencies": {
-    "@celo/contractkit": "^1.0.2",
-    "ethers": "^5.0.31",
-    "hardhat": "^2.0.10",
-    "husky": "=4",
+    "@celo/contractkit": "^1.1.0",
+    "ethers": "^5.1.0",
+    "hardhat": "^2.1.2",
+    "husky": "6.0.0",
     "lint-staged": ">=10",
     "prettier": "^2.2.1",
-    "typescript": "^4.1.5"
+    "typescript": "^4.2.4"
   },
   "husky": {
     "hooks": {
@@ -33,11 +34,12 @@
   },
   "peerDependencies": {
     "@celo/contractkit": "^1.0.2",
-    "ethers": "^5.0.31",
+    "ethers": "^5.1.0",
     "hardhat": "^2.0.10"
   },
   "prettier": {},
   "files": [
+    "src",
     "lib",
     "README.md"
   ]
