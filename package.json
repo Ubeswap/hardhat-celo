@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@celo/contractkit": "^1.1.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
     "ethers": "^5.1.0",
     "hardhat": "^2.1.2",
     "husky": "6.0.0",
@@ -27,13 +28,15 @@
     }
   },
   "lint-staged": {
-    "*.{ts,js,css,md}": "prettier --write"
+    "*.{ts,js,css,md,json,js}": "prettier --write"
   },
   "dependencies": {
-    "@celo-tools/celo-ethers-wrapper": "^0.0.5"
+    "@celo-tools/celo-ethers-wrapper": "^0.0.5",
+    "@ubeswap/solidity-create2-deployer": "^0.6.1"
   },
   "peerDependencies": {
     "@celo/contractkit": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
     "ethers": "^5.1.0",
     "hardhat": "^2.0.10"
   },
