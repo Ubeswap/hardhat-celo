@@ -10,6 +10,7 @@ import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
 import { ICeloNetwork, networkNames } from "../networks";
 import { DeployCreate2 } from "../utils/deployCreate2";
 import { log } from "../utils/logger";
+import hre from "hardhat";
 
 type DeployerFnArgs = {
   /**
@@ -63,26 +64,6 @@ export type IAllResults<
   K extends string,
   RM extends { [Key in K]: RM[Key] }
 > = UnionToIntersection<AsyncReturnType<RM[K]>>;
-
-const makeConfigPath = (step: string, chainId: ICeloNetwork): string =>
-  __dirname +
-  `/../../deployments/${step}.${networkNames[chainId]}.addresses.json`;
-
-const writeDeployment = async (
-  step: string,
-  chainId: ICeloNetwork,
-  addresses: Record<string, unknown>
-): Promise<void> => {
-  const configPath = makeConfigPath(step, chainId);
-  Object.entries(addresses).forEach(([name, addr]) =>
-    console.log(
-      `${name}: ${
-        typeof addr === "string" ? addr : JSON.stringify(addr, null, 2)
-      }`
-    )
-  );
-  await fs.writeFile(configPath, JSON.stringify(addresses, null, 2));
-};
 
 /**
  * Makes an environment for either Ethers.js or hardhat-celo, based on the chain
@@ -139,13 +120,34 @@ export const makeDeployTask = <
   salt = defaultSalt,
   deployers,
 }: {
-  rootDir: string;
+  rootDir?: string;
   salt?: string;
   deployers: M;
 }): {
   deploy: ActionType<{ step: K }>;
   deployers: M;
 } => {
+  const deploymentsDir = `${rootDir ?? hre.config.paths.root}/deployments`;
+
+  const makeConfigPath = (step: string, chainId: ICeloNetwork): string =>
+    `${deploymentsDir}/deployments/${step}.${networkNames[chainId]}.addresses.json`;
+
+  const writeDeployment = async (
+    step: string,
+    chainId: ICeloNetwork,
+    addresses: Record<string, unknown>
+  ): Promise<void> => {
+    const configPath = makeConfigPath(step, chainId);
+    Object.entries(addresses).forEach(([name, addr]) =>
+      console.log(
+        `${name}: ${
+          typeof addr === "string" ? addr : JSON.stringify(addr, null, 2)
+        }`
+      )
+    );
+    await fs.writeFile(configPath, JSON.stringify(addresses, null, 2));
+  };
+
   const deploy: ActionType<{ step: K }> = async ({ step }, env) => {
     if (!process.env.SALT) {
       console.warn(
@@ -153,7 +155,6 @@ export const makeDeployTask = <
       );
     }
 
-    const deploymentsDir = `${rootDir}/deployments`;
     console.log("Creating deployments directory at", deploymentsDir);
     await mkdir(deploymentsDir, {
       recursive: true,
@@ -200,6 +201,7 @@ export const makeDeployTask = <
       salt,
       deployCreate2: theDeployCreate2,
     });
+
     await writeDeployment(step, chainId, result as Record<string, unknown>);
   };
   return { deploy, deployers };
