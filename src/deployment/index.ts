@@ -11,7 +11,7 @@ import { ICeloNetwork, networkNames } from "../networks";
 import { DeployCreate2 } from "../utils/deployCreate2";
 import { log } from "../utils/logger";
 
-type DeployerFnArgs<K extends string, RM extends { [Key in K]: RM[Key] }> = {
+type DeployerFnArgs = {
   /**
    * Provider for fetching data
    */
@@ -23,7 +23,9 @@ type DeployerFnArgs<K extends string, RM extends { [Key in K]: RM[Key] }> = {
   /**
    * Get addresses of previous deployments.
    */
-  getAddresses: (...keys: readonly K[]) => IAllResults<K, RM>;
+  getAddresses: <K extends string, RM extends { [Key in K]: RM[Key] }>(
+    ...keys: readonly K[]
+  ) => IAllResults<K, RM>;
   /**
    * The salt. This can also be set in `process.env.SALT`.
    */
@@ -37,11 +39,7 @@ type DeployerFnArgs<K extends string, RM extends { [Key in K]: RM[Key] }> = {
 /**
  * A function that deploys things
  */
-export type DeployerFn<
-  R,
-  K extends string,
-  RM extends { [Key in K]: RM[Key] }
-> = (args: DeployerFnArgs<K, RM>) => Promise<R>;
+export type DeployerFn<R> = (args: DeployerFnArgs) => Promise<R>;
 
 type AsyncReturnType<T extends (...args: any) => any> = T extends (
   ...args: any
@@ -117,7 +115,11 @@ export type DeployerMap<
   K extends string,
   RM extends { [Key in K]: RM[Key] }
 > = {
-  [Step in K]: DeployerFn<RM[Step], K, RM>;
+  [Step in K]: DeployerFn<RM[Step]>;
+};
+
+export type ResultsMap<M extends { [Key in keyof M]: DeployerFn<unknown> }> = {
+  [Key in keyof M]: AsyncReturnType<M[Key]>;
 };
 
 const defaultSalt =
@@ -138,62 +140,57 @@ export const makeDeployTask = <
 }: {
   salt?: string;
   deployers: M;
-}): ActionType<{ step: K }> => async ({ step }, env) => {
-  if (!process.env.SALT) {
-    console.warn(
-      `Warning: salt or process.env.SALT not specified; using a random salt (${defaultSalt})`
-    );
-  }
+}): {
+  deploy: ActionType<{ step: K }>;
+  deployers: M;
+} => {
+  const deploy: ActionType<{ step: K }> = async ({ step }, env) => {
+    if (!process.env.SALT) {
+      console.warn(
+        `Warning: salt or process.env.SALT not specified; using a random salt (${defaultSalt})`
+      );
+    }
 
-  const deploymentsDir = `${env.config.paths.root}/deployments`;
-  console.log("Creating deployments directory at", deploymentsDir);
-  await mkdir(deploymentsDir);
+    const deploymentsDir = `${env.config.paths.root}/deployments`;
+    console.log("Creating deployments directory at", deploymentsDir);
+    await mkdir(deploymentsDir);
 
-  const chainId = (await env.celo.kit.connection.chainId()) as ICeloNetwork;
-  const deployer = deployers[step];
-  if (!deployer) {
-    throw new Error(`Unknown step: ${step}`);
-  }
+    const chainId = (await env.celo.kit.connection.chainId()) as ICeloNetwork;
+    const deployer = deployers[step];
+    if (!deployer) {
+      throw new Error(`Unknown step: ${step}`);
+    }
 
-  const { signer, provider } = await makeCommonEnvironment(env);
+    const { signer, provider } = await makeCommonEnvironment(env);
 
-  const theDeployCreate2 = (async (name, { signer, factory, args }) => {
-    log(`Deploying ${name}...`);
-    const result = await deployCreate2({ signer, factory, args, salt });
-    log(`Deployed at ${result.address} (tx: ${result.txHash})`);
-    return result;
-  }) as DeployCreate2;
+    const theDeployCreate2 = (async (name, { signer, factory, args }) => {
+      log(`Deploying ${name}...`);
+      const result = await deployCreate2({ signer, factory, args, salt });
+      log(`Deployed at ${result.address} (tx: ${result.txHash})`);
+      return result;
+    }) as DeployCreate2;
 
-  const result = await deployer({
-    deployer: signer,
-    provider,
-    getAddresses: (...keys: readonly K[]) =>
-      ({
-        ...keys.reduce(
-          (acc: Record<K, unknown>, k: K) => ({
-            ...acc,
-            ...require(`${deploymentsDir}/${k}.${networkNames[chainId]}.addresses.json`),
-          }),
-          {}
-        ),
-      } as IAllResults<K, RM>),
-    salt,
-    deployCreate2: theDeployCreate2,
-  });
-  await writeDeployment(step, chainId, result as Record<string, unknown>);
+    const result = await deployer({
+      deployer: signer,
+      provider,
+      getAddresses: <K2 extends string, RM2 extends { [Key in K2]: RM2[Key] }>(
+        ...keys: readonly K2[]
+      ) =>
+        ({
+          ...keys.reduce(
+            (acc: Record<K2, unknown>, k: K2) => ({
+              ...acc,
+              ...require(`${deploymentsDir}/${k}.${networkNames[chainId]}.addresses.json`),
+            }),
+            {}
+          ),
+        } as IAllResults<K2, RM2>),
+      salt,
+      deployCreate2: theDeployCreate2,
+    });
+    await writeDeployment(step, chainId, result as Record<string, unknown>);
+  };
+  return { deploy, deployers };
 };
 
 export { deployCreate2, deployContract };
-
-/**
- * Returns a function which adds the types to a deployer function.
- * @param _deployers
- * @returns
- */
-export const makeCreateDeployer = <
-  K extends string,
-  RM extends { [Key in K]: RM[Key] },
-  M extends DeployerMap<K, RM>
->(
-  _deployers: M
-) => <R>(inner: DeployerFn<R, K, RM>) => inner;
