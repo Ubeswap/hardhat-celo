@@ -1,6 +1,6 @@
 {
   "name": "@ubeswap/hardhat-celo",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Celo integration for Hardhat",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
