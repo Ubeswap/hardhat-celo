@@ -5,7 +5,6 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "jsx": "preserve",
-    "composite": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "strict": true,
@@ -16,7 +15,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
-    "outDir": "lib/"
+    "outDir": "./lib/",
+    "rootDir": "./src/"
   },
-  "include": ["src/"]
+  "include": ["./src/"]
 }

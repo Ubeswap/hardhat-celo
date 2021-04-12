@@ -8,6 +8,8 @@ import { HardhatNetworkHDAccountsConfig } from "hardhat/types";
 import { fornoURLs, parseNetwork } from "./networks";
 export * from "./networks";
 export * from "./type-extensions";
+export * from "./deployment";
+export * from "./utils";
 
 export const derivationPath = "m/44'/52752'/0'/0/";
 
