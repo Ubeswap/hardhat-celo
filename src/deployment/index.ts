@@ -23,7 +23,7 @@ type DeployerFnArgs = {
   /**
    * Get addresses of previous deployments.
    */
-  getAddresses: <K extends string, RM extends { [Key in K]: RM[Key] }>(
+  getAddresses: <RM extends { [Key in K]: RM[Key] }, K extends string>(
     ...keys: readonly K[]
   ) => IAllResults<K, RM>;
   /**
@@ -48,21 +48,6 @@ type AsyncReturnType<T extends (...args: any) => any> = T extends (
   : T extends (...args: any) => infer U
   ? U
   : any;
-
-// https://fettblog.eu/typescript-union-to-intersection/
-type UnionToIntersection<T> = (T extends any ? (x: T) => any : never) extends (
-  x: infer R
-) => any
-  ? R
-  : never;
-
-/**
- * Gets the type of the results of the given steps.
- */
-export type IAllResults<
-  K extends string,
-  RM extends { [Key in K]: RM[Key] }
-> = UnionToIntersection<AsyncReturnType<RM[K]>>;
 
 /**
  * Makes an environment for either Ethers.js or hardhat-celo, based on the chain
@@ -101,6 +86,21 @@ export type DeployerMap<
 export type ResultsMap<M extends { [Key in keyof M]: DeployerFn<unknown> }> = {
   [Key in keyof M]: AsyncReturnType<M[Key]>;
 };
+
+// https://fettblog.eu/typescript-union-to-intersection/
+type UnionToIntersection<T> = (T extends any ? (x: T) => any : never) extends (
+  x: infer R
+) => any
+  ? R
+  : never;
+
+/**
+ * Gets the type of the results of the given steps.
+ */
+export type IAllResults<
+  K extends string,
+  RM extends { [Key in K]: RM[Key] }
+> = UnionToIntersection<RM[K]>;
 
 const defaultSalt =
   process.env.SALT ?? `${utils.hexlify(utils.randomBytes(32))}`;
@@ -185,7 +185,7 @@ export const makeDeployTask = <
     const result = await deployer({
       deployer: signer,
       provider,
-      getAddresses: <K2 extends string, RM2 extends { [Key in K2]: RM2[Key] }>(
+      getAddresses: <RM2 extends { [Key in K2]: RM2[Key] }, K2 extends string>(
         ...keys: readonly K2[]
       ) =>
         ({
