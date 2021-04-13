@@ -102,9 +102,6 @@ export type IAllResults<
   RM extends { [Key in K]: RM[Key] }
 > = UnionToIntersection<RM[K]>;
 
-const defaultSalt =
-  process.env.SALT ?? `${utils.hexlify(utils.randomBytes(32))}`;
-
 /**
  * Makes the deploy task
  * @param param0
@@ -116,7 +113,7 @@ export const makeDeployTask = <
   M extends DeployerMap<K, RM>
 >({
   rootDir,
-  salt = defaultSalt,
+  salt: unknownSalt,
   deployers,
 }: {
   rootDir?: string;
@@ -148,9 +145,11 @@ export const makeDeployTask = <
   };
 
   const deploy: ActionType<{ step: K }> = async ({ step }, env) => {
-    if (!process.env.SALT) {
+    const maybeSalt = unknownSalt ?? process.env.SALT;
+    const salt = maybeSalt ?? `${utils.hexlify(utils.randomBytes(32))}`;
+    if (!maybeSalt) {
       console.warn(
-        `Warning: salt or process.env.SALT not specified; using a random salt (${defaultSalt})`
+        `Warning: salt or process.env.SALT not specified; using a random salt (${salt})`
       );
     }
 
