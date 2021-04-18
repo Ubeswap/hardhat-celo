@@ -4,6 +4,7 @@ import {
   deployCreate2,
 } from "@ubeswap/solidity-create2-deployer";
 import { ethers, Signer, utils } from "ethers";
+import { getAddress } from "ethers/lib/utils";
 import * as fs from "fs/promises";
 import { mkdir } from "fs/promises";
 import { ActionType, HardhatRuntimeEnvironment } from "hardhat/types";
@@ -178,6 +179,7 @@ export const makeDeployTask = <
         salt: `${salt}-${name}${saltExtra ?? ""}`,
       });
       log(`Deployed at ${result.address} (tx: ${result.txHash})`);
+      result.address = getAddress(result.address);
       return result;
     }) as DeployCreate2;
 
