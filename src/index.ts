@@ -14,6 +14,19 @@ export * from "./utils";
 
 export const derivationPath = "m/44'/52752'/0'/0/";
 
+export const additionalOutputSelection = {
+  "*": {
+    "*": [
+      "abi",
+      "evm.bytecode",
+      "evm.deployedBytecode",
+      "evm.methodIdentifiers",
+      "metadata",
+    ],
+    "": ["ast"],
+  },
+};
+
 task<{ name: string }>(
   "metadata:write",
   "Writes the metadata of a contract to disk",
@@ -35,14 +48,6 @@ task<{ name: string }>(
     const metadataFile = `${contractDir}/metadata.json`;
     await writeFile(metadataFile, metadataStr);
     console.log("Wrote metadata to " + metadataFile);
-
-    const contractInfoFile = `${contractDir}/bytecode.json`;
-    const cleanBuildInfo = {
-      bytecode: contractBuildInfo?.evm.bytecode.object,
-      deployedBytecode: contractBuildInfo?.evm.deployedBytecode.object,
-    };
-    await writeFile(contractInfoFile, JSON.stringify(cleanBuildInfo));
-    console.log("Wrote contract bytecode to " + contractInfoFile);
   }
 ).addParam("name", "The name of the contract");
 
